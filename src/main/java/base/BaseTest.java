@@ -7,6 +7,7 @@ import java.time.Instant;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.testng.SkipException;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
@@ -46,6 +47,14 @@ public class BaseTest {
 		driver = createDriverWithFallback();
 		Log.info("Navigating to URL...");
 		driver.get("https://admin-demo.nopcommerce.com/login");
+		if (isCloudflareChallengePage()) {
+			String message = "Cloudflare challenge detected. URL: " + driver.getCurrentUrl() + ", Title: "
+					+ driver.getTitle();
+			if (isCiEnvironment()) {
+				throw new SkipException(message + ". Skipping in CI because login form is blocked.");
+			}
+			Log.info(message);
+		}
 	}
 
 	@AfterMethod
@@ -123,6 +132,22 @@ public class BaseTest {
 		}
 
 		return options;
+	}
+
+	private boolean isCloudflareChallengePage() {
+		String title = driver.getTitle();
+		String titleLower = title == null ? "" : title.toLowerCase();
+		if (titleLower.contains("just a moment") || titleLower.contains("nur einen moment")) {
+			return true;
+		}
+
+		String pageSource = driver.getPageSource();
+		String sourceLower = pageSource == null ? "" : pageSource.toLowerCase();
+		return sourceLower.contains("cf-challenge") || sourceLower.contains("cloudflare");
+	}
+
+	private boolean isCiEnvironment() {
+		return System.getenv("JENKINS_URL") != null || "true".equalsIgnoreCase(System.getenv("CI"));
 	}
 
 }
