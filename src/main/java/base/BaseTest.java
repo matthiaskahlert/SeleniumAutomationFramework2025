@@ -46,7 +46,7 @@ public class BaseTest {
 		options.addArguments("--disable-blink-features=AutomationControlled");
 		options.addArguments("--no-sandbox");
 		options.addArguments("--disable-dev-shm-usage");
-		options.setBinary("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe");
+		options.setBinary("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe");
 		options.setExperimentalOption("excludeSwitches",
 				new java.util.ArrayList<>(java.util.Arrays.asList("enable-automation")));
 		options.setExperimentalOption("useAutomationExtension", false);
