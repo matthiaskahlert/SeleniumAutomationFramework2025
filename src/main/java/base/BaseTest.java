@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -141,9 +142,17 @@ public class BaseTest {
 			return true;
 		}
 
+		boolean hasLoginField = !driver.findElements(By.id("Email")).isEmpty();
+		if (hasLoginField) {
+			return false;
+		}
+
 		String pageSource = driver.getPageSource();
 		String sourceLower = pageSource == null ? "" : pageSource.toLowerCase();
-		return sourceLower.contains("cf-challenge") || sourceLower.contains("cloudflare");
+		return sourceLower.contains("cf-challenge")
+				|| sourceLower.contains("challenge-platform")
+				|| sourceLower.contains("cf-turnstile")
+				|| sourceLower.contains("__cf_chl_");
 	}
 
 	private boolean isCiEnvironment() {
