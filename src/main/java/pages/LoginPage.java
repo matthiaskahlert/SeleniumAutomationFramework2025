@@ -3,6 +3,7 @@ package pages;
 import java.time.Duration;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -33,9 +34,15 @@ public class LoginPage {
 	}
 
 	public void enterUsername(String username) {
-		wait.until(ExpectedConditions.visibilityOfElementLocated(org.openqa.selenium.By.id("Email")));
-		usernameTextbox.clear();
-		usernameTextbox.sendKeys(username);
+		try {
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("Email")));
+			usernameTextbox.clear();
+			usernameTextbox.sendKeys(username);
+		} catch (TimeoutException ex) {
+			String diagnostic = "Email field not visible. Current URL: " + driver.getCurrentUrl() + ", Title: "
+					+ driver.getTitle();
+			throw new AssertionError(diagnostic, ex);
+		}
 	}
 
 	public void enterPassword(String password) {

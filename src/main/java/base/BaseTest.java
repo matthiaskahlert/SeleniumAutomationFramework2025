@@ -1,5 +1,8 @@
 package base;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -46,7 +49,13 @@ public class BaseTest {
 		options.addArguments("--disable-blink-features=AutomationControlled");
 		options.addArguments("--no-sandbox");
 		options.addArguments("--disable-dev-shm-usage");
-		options.setBinary("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe");
+		String chromeBinary = resolveChromeBinary();
+		if (chromeBinary != null) {
+			options.setBinary(chromeBinary);
+			Log.info("Using Chrome binary: " + chromeBinary);
+		} else {
+			Log.info("No explicit Chrome binary found. Falling back to Selenium Manager auto-detection.");
+		}
 		options.setExperimentalOption("excludeSwitches",
 				new java.util.ArrayList<>(java.util.Arrays.asList("enable-automation")));
 		options.setExperimentalOption("useAutomationExtension", false);
@@ -69,6 +78,25 @@ public class BaseTest {
 			Log.info("Closing Browser...");
 			driver.quit();
 		}
+	}
+
+	private String resolveChromeBinary() {
+		String envChrome = System.getenv("CHROME_BIN");
+		if (envChrome != null && !envChrome.isBlank() && Files.exists(Path.of(envChrome))) {
+			return envChrome;
+		}
+
+		String[] candidates = {
+				"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+				"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" };
+
+		for (String candidate : candidates) {
+			if (Files.exists(Path.of(candidate))) {
+				return candidate;
+			}
+		}
+
+		return null;
 	}
 
 }
