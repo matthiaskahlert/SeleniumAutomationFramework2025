@@ -2,6 +2,7 @@ package base;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -42,24 +43,7 @@ public class BaseTest {
 	public void setUp() {
 
 		Log.info("Starting WebDriver...");
-		ChromeOptions options = new ChromeOptions();
-		options.addArguments("--headless=new");
-		options.addArguments("--disable-gpu");
-		options.addArguments("--window-size=1920,1080");
-		options.addArguments("--disable-blink-features=AutomationControlled");
-		options.addArguments("--no-sandbox");
-		options.addArguments("--disable-dev-shm-usage");
-		String chromeBinary = resolveChromeBinary();
-		if (chromeBinary != null) {
-			options.setBinary(chromeBinary);
-			Log.info("Using Chrome binary: " + chromeBinary);
-		} else {
-			Log.info("No explicit Chrome binary found. Falling back to Selenium Manager auto-detection.");
-		}
-		options.setExperimentalOption("excludeSwitches",
-				new java.util.ArrayList<>(java.util.Arrays.asList("enable-automation")));
-		options.setExperimentalOption("useAutomationExtension", false);
-		driver = new ChromeDriver(options);
+		driver = createDriverWithFallback();
 		Log.info("Navigating to URL...");
 		driver.get("https://admin-demo.nopcommerce.com/login");
 	}
@@ -97,6 +81,48 @@ public class BaseTest {
 		}
 
 		return null;
+	}
+
+	private WebDriver createDriverWithFallback() {
+		ChromeOptions options = buildChromeOptions(true);
+		try {
+			Log.info("Trying Chrome with --headless=new");
+			return new ChromeDriver(options);
+		} catch (org.openqa.selenium.SessionNotCreatedException ex) {
+			Log.info("Chrome startup with --headless=new failed. Retrying with legacy --headless.");
+			ChromeOptions fallbackOptions = buildChromeOptions(false);
+			return new ChromeDriver(fallbackOptions);
+		}
+	}
+
+	private ChromeOptions buildChromeOptions(boolean useNewHeadless) {
+		ChromeOptions options = new ChromeOptions();
+		if (useNewHeadless) {
+			options.addArguments("--headless=new");
+		} else {
+			options.addArguments("--headless");
+		}
+		options.addArguments("--disable-gpu");
+		options.addArguments("--window-size=1920,1080");
+		options.addArguments("--no-sandbox");
+		options.addArguments("--disable-dev-shm-usage");
+		options.addArguments("--no-first-run");
+		options.addArguments("--no-default-browser-check");
+		options.addArguments("--disable-background-networking");
+		options.addArguments("--disable-extensions");
+		options.addArguments("--remote-allow-origins=*");
+		String tempProfile = "C:\\Windows\\Temp\\jenkins-chrome-profile-" + Instant.now().toEpochMilli();
+		options.addArguments("--user-data-dir=" + tempProfile);
+
+		String chromeBinary = resolveChromeBinary();
+		if (chromeBinary != null) {
+			options.setBinary(chromeBinary);
+			Log.info("Using Chrome binary: " + chromeBinary);
+		} else {
+			Log.info("No explicit Chrome binary found. Falling back to Selenium Manager auto-detection.");
+		}
+
+		return options;
 	}
 
 }
