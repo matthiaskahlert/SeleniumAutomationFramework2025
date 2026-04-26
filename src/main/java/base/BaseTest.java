@@ -40,14 +40,17 @@ public class BaseTest {
 
 		Log.info("Starting WebDriver...");
 		ChromeOptions options = new ChromeOptions();
+		options.addArguments("--headless=new");
+		options.addArguments("--disable-gpu");
+		options.addArguments("--window-size=1920,1080");
 		options.addArguments("--disable-blink-features=AutomationControlled");
 		options.addArguments("--no-sandbox");
 		options.addArguments("--disable-dev-shm-usage");
+		options.setBinary("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe");
 		options.setExperimentalOption("excludeSwitches",
 				new java.util.ArrayList<>(java.util.Arrays.asList("enable-automation")));
 		options.setExperimentalOption("useAutomationExtension", false);
 		driver = new ChromeDriver(options);
-		driver.manage().window().maximize();
 		Log.info("Navigating to URL...");
 		driver.get("https://admin-demo.nopcommerce.com/login");
 	}
